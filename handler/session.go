@@ -29,24 +29,24 @@ func NewSessionHandler(
 }
 
 func (sessionHandler *SessionHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
-	var userRequestBody UserRequestBody
+	var loginRequestBody LoginUserRequestBody
 
-	err := json.NewDecoder(r.Body).Decode(&userRequestBody)
+	err := json.NewDecoder(r.Body).Decode(&loginRequestBody)
 	if err != nil {
 		sessionHandler.logger.Println("Error decoding user request body :: ", err)
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	user, err := sessionHandler.userStore.GetUser(userRequestBody.Email)
+	user, err := sessionHandler.userStore.GetUser(loginRequestBody.Email)
 	// TODO differentiate between bad request (user not found) and server error
 	if err != nil {
-		sessionHandler.logger.Println("Error getting user :: ", err)
+		sessionHandler.logger.Printf("Error getting user %v :: %v\n", loginRequestBody, err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	err = util.CheckPassword(userRequestBody.Password, user.Password)
+	err = util.CheckPassword(loginRequestBody.Password, user.Password)
 	if err != nil {
 		sessionHandler.logger.Println("Error checking password :: ", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -90,14 +90,17 @@ func (sessionHandler *SessionHandler) LoginUser(w http.ResponseWriter, r *http.R
 		return
 	}
 
-  refreshTokenCookie := http.Cookie{
-    Name: "refresh_token",
-    Value: refreshToken,
-    MaxAge: int(refreshClaims.RegisteredClaims.ExpiresAt.Time.Sub(time.Now()).Seconds()),
-    HttpOnly: true,
-  }
+	refreshTokenCookie := http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  refreshClaims.RegisteredClaims.ExpiresAt.Time,
+		HttpOnly: true,
+		Secure:   false,
+		// SameSite: http.SameSiteNoneMode,
+		Domain: "localhost:5173",
+	}
 
-  http.SetCookie(w, &refreshTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
 
 	res := LoginUserResponseBody{
 		SessionID:             session.ID,
@@ -113,21 +116,21 @@ func (sessionHandler *SessionHandler) LoginUser(w http.ResponseWriter, r *http.R
 }
 
 func (sessionHandler *SessionHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
-  refreshTokenCookie, err := r.Cookie("refresh_token")
-  if err != nil {
-    sessionHandler.logger.Println("No refresh token cookie found :: ", err)
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
+	refreshTokenCookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		sessionHandler.logger.Println("No refresh token cookie found :: ", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-  refreshClaims, err := sessionHandler.tokenMaker.VerifyToken(refreshTokenCookie.Value)
-  if err != nil {
-    sessionHandler.logger.Println("Error verifying refresh token :: ", err)
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
+	refreshClaims, err := sessionHandler.tokenMaker.VerifyToken(refreshTokenCookie.Value)
+	if err != nil {
+		sessionHandler.logger.Println("Error verifying refresh token :: ", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-  sessionID := refreshClaims.RegisteredClaims.ID
+	sessionID := refreshClaims.RegisteredClaims.ID
 
 	err = sessionHandler.sessionStore.RevokedSession(sessionID)
 	if err != nil {
@@ -136,25 +139,28 @@ func (sessionHandler *SessionHandler) LogoutUser(w http.ResponseWriter, r *http.
 		return
 	}
 
-  expireCookie := http.Cookie{
-    Name: "refresh_token",
-    Value: "",
-    MaxAge: -1,
-    HttpOnly: true,
-  }
-  
-  http.SetCookie(w, &expireCookie)
+	expireCookie := http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Expires:  time.Now().AddDate(0, 0, -1),
+		HttpOnly: true,
+		Secure:   false,
+		// SameSite: http.SameSiteNoneMode,
+		Domain:   "localhost:5173",
+	}
+
+	http.SetCookie(w, &expireCookie)
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func (sessionHandler *SessionHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-  refreshTokenCookie, err := r.Cookie("refresh_token")
-  if err != nil {
-    sessionHandler.logger.Println("No refresh token cookie found :: ", err)
-    http.Error(w, "Unauthorized", http.StatusUnauthorized)
-    return
-  }
+	refreshTokenCookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		sessionHandler.logger.Println("No refresh token cookie found :: ", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	refreshClaims, err := sessionHandler.tokenMaker.VerifyToken(refreshTokenCookie.Value)
 	if err != nil {
