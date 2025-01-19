@@ -14,12 +14,16 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
-type UserStore interface {
-  CreateUser(user *User) (*User, error)
-  GetUser(email string) (*User, error)
-  UpdateUser(user *User) error
-  DeleteUser(id int64) error
-  ListUsers() ([]*User, error)
+type UserNotFoundError struct{}
+
+func (e *UserNotFoundError) Error() string {
+	return "user not found"
 }
 
-// implement the UserStore interface for a in memory array of users
+type UserStore interface {
+	CreateUser(user *User) (*User, error)
+	GetUser(email string) (*User, error)
+	UpdateUser(user *User) error
+	DeleteUser(id int64) error
+	ListUsers() ([]*User, error)
+}

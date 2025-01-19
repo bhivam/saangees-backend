@@ -38,7 +38,7 @@ func (userStore *InMemoryUserStore) GetUser(email string) (*User, error) {
 			return user, nil
 		}
 	}
-	return nil, errors.New("user not found")
+	return nil, &UserNotFoundError{}
 }
 
 func (userStore *InMemoryUserStore) UpdateUser(user *User) error {

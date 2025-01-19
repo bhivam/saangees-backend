@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/auth"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"google.golang.org/api/option"
 
 	"github.com/bhivam/saangees-backend/data"
 	"github.com/bhivam/saangees-backend/handler"
@@ -20,9 +24,22 @@ import (
 func main() {
 	logger := log.New(os.Stdout, "AUTH API :: ", log.LstdFlags)
 
+	opt := option.WithCredentialsFile("./sk-firebase.json")
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+  
+	if err != nil {
+		return 
+	}
+  
+  fireAuth, err := app.Auth(context.Background())
+  if err != nil {
+    logger.Fatal("error getting firebase auth client")
+    return
+  }
+
 	secretKey := os.Getenv("SECRET_KEY")
 	if secretKey == "" {
-		secretKey = "01234567890123456789012345678901"
+		secretKey = "0123456789012345678901234567890"
 	}
 
 	if len(secretKey) != 32 {
