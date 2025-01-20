@@ -29,8 +29,6 @@ func (userHandler *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userHandler.logger.Println("User :: ", user)
-
 	if !user.IsAdmin {
 		userHandler.logger.Println("User is not admin")
 		http.Error(w, "User is not admin", http.StatusForbidden)

@@ -21,7 +21,6 @@ func GetAuthMiddlewareFunc(
 			authHeader := r.Header.Get("Authorization")
 
 			if authHeader == "" {
-        logger.Println("No Auth Header")
 				ctx := context.WithValue(r.Context(), util.UserContextKey{}, data.AnonymousUser)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
@@ -45,7 +44,6 @@ func GetAuthMiddlewareFunc(
 				return
 			}
     
-      logger.Println("User :: ", user)
 			ctx := context.WithValue(r.Context(), util.UserContextKey{}, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
