@@ -23,8 +23,7 @@ func main() {
 
 	router := http.NewServeMux()
 
-  baseAuth := middleware.GetAuthMiddlewareFunc(userStore, logger, false)
-  adminAuth := middleware.GetAuthMiddlewareFunc(userStore, logger, true)
+	auth := middleware.GetAuthMiddlewareFunc(userStore, logger)
 
 	userHandler := handler.NewUserHandler(logger, userStore)
 	tokenHandler := handler.NewTokenHandler(logger, userStore, tokenStore)
@@ -32,8 +31,8 @@ func main() {
 	router.Handle("POST /token", http.HandlerFunc(tokenHandler.CreateToken))
 
 	router.Handle("POST /user/create", http.HandlerFunc(userHandler.CreateUser))
-	router.Handle("GET /user/list", adminAuth(http.HandlerFunc(userHandler.ListUsers))) // Admin Auth
-	router.Handle("GET /user", baseAuth(http.HandlerFunc(userHandler.GetUser)))        // Base Auth
+	router.Handle("GET /user/list", http.HandlerFunc(userHandler.ListUsers)) // Admin Auth
+	router.Handle("GET /user", http.HandlerFunc(userHandler.GetUser))        // Base Auth
 
 	CORS := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173"},
@@ -43,7 +42,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:         ":3000",
-		Handler:      middleware.Logging(CORS(router), logger),
+		Handler:      middleware.Logging(CORS(auth(router)), logger),
 		ErrorLog:     logger,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

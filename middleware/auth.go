@@ -13,7 +13,6 @@ import (
 func GetAuthMiddlewareFunc(
 	userStore data.UserStore,
 	logger *log.Logger,
-	isAdmin bool,
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -38,20 +37,12 @@ func GetAuthMiddlewareFunc(
 
 			// TODO validate token
 
-			// verify token
-
 			user, err := userStore.GetByToken(data.ScopeAuthentication, token)
 			if err != nil {
 				logger.Println("Error getting user :: ", err)
 				http.Error(w, "Error getting user from token", http.StatusForbidden)
 				return
 			}
-
-      if isAdmin && !user.IsAdmin {
-        logger.Println("User is not admin")
-        http.Error(w, "User is not admin", http.StatusForbidden)
-        return
-      }
 
 			ctx := context.WithValue(r.Context(), util.UserContextKey{}, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
