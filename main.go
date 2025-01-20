@@ -23,8 +23,7 @@ func main() {
 
   err := godotenv.Load()
   if err != nil {
-    logger.Println("Error loading .env file :: ", err)
-    return
+    logger.Println("Did not load .env file :: ", err)
   }
 
 	db_cnx_string := os.Getenv("DB_CONNECTION_STRING")
