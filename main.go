@@ -38,7 +38,7 @@ func main() {
 		AllowedOrigins: []string{
 			"http://localhost:5173",
 			"https://sangees-kitchen.vercel.app",
-			"https://www.saangeeskitchen.com/",
+			"https://www.saangeeskitchen.com",
 		},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
