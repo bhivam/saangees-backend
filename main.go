@@ -8,7 +8,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/bhivam/saangees-backend/data"
 	"github.com/bhivam/saangees-backend/handler"
@@ -18,8 +21,26 @@ import (
 func main() {
 	logger := log.New(os.Stdout, "AUTH API :: ", log.LstdFlags)
 
-	tokenStore := data.NewInMemoryTokenStore()
-	userStore := data.NewInMemoryUserStore(tokenStore)
+  err := godotenv.Load()
+  if err != nil {
+    logger.Println("Error loading .env file :: ", err)
+    return
+  }
+
+	db_cnx_string := os.Getenv("DB_CONNECTION_STRING")
+  if db_cnx_string == "" {
+    logger.Println("DB_CONNECTION_STRING is not set")
+    return
+  }
+
+	db, err := gorm.Open(postgres.Open(db_cnx_string), &gorm.Config{})
+	if err != nil {
+		logger.Println("Error connecting to database :: ", err)
+    return
+	}
+
+	tokenStore := data.NewPostgresTokenStore(db)
+	userStore := data.NewPostgresUserStore(db)
 
 	router := http.NewServeMux()
 
