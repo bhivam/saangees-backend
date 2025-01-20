@@ -7,7 +7,7 @@ import (
 var AnonymousUser = &User{}
 
 type User struct {
-	ID        int64     `gorm:"primaryKey;autoIncrement"       json:"id"`
+	ID        int64     `gorm:"primaryKey"                     json:"id"`
 	Name      string    `gorm:"type:text;not null"             json:"name"`
 	Email     string    `gorm:"type:text;not null;uniqueIndex" json:"email"`
 	Hash      string    `gorm:"type:text;not null"             json:"hash"`
@@ -29,4 +29,3 @@ type UserStore interface {
 func (user *User) IsAnonymous() bool {
 	return user == AnonymousUser
 }
-
