@@ -35,7 +35,11 @@ func main() {
 	router.Handle("GET /user", http.HandlerFunc(userHandler.GetUser))        // Base Auth
 
 	CORS := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "https://sangees-kitchen.vercel.app"},
+		AllowedOrigins: []string{
+			"http://localhost:5173",
+			"https://sangees-kitchen.vercel.app",
+			"https://www.saangeeskitchen.com/",
+		},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 	}).Handler
