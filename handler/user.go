@@ -22,18 +22,20 @@ func NewUserHandler(
 }
 
 func (userHandler *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
-  user, ok := r.Context().Value(util.UserContextKey{}).(*data.User)
-  if !ok {
-    userHandler.logger.Println("Error getting user from context")
-    http.Error(w, "Error getting user from context", http.StatusInternalServerError)
-    return
-  }
+	user, ok := r.Context().Value(util.UserContextKey{}).(*data.User)
+	if !ok {
+		userHandler.logger.Println("Error getting user from context")
+		http.Error(w, "Error getting user from context", http.StatusInternalServerError)
+		return
+	}
 
-  if !user.IsAdmin {
-    userHandler.logger.Println("User is not admin")
-    http.Error(w, "User is not admin", http.StatusForbidden)
-    return
-  }
+	userHandler.logger.Println("User :: ", user)
+
+	if !user.IsAdmin {
+		userHandler.logger.Println("User is not admin")
+		http.Error(w, "User is not admin", http.StatusForbidden)
+		return
+	}
 
 	users, err := userHandler.userStore.ListUsers()
 	if err != nil {
