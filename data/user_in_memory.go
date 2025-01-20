@@ -7,13 +7,15 @@ import (
 )
 
 type InMemoryUserStore struct {
-	users []*User
-	mu    sync.Mutex
+	users      []*User
+	mu         sync.Mutex
+	tokenStore TokenStore
 }
 
-func NewInMemoryUserStore() *InMemoryUserStore {
+func NewInMemoryUserStore(tokenStore TokenStore) *InMemoryUserStore {
 	return &InMemoryUserStore{
-		users: make([]*User, 0),
+		users:      make([]*User, 0),
+		tokenStore: tokenStore,
 	}
 }
 
@@ -29,7 +31,19 @@ func (userStore *InMemoryUserStore) CreateUser(user *User) (*User, error) {
 	return user, nil
 }
 
-func (userStore *InMemoryUserStore) GetUser(email string) (*User, error) {
+func (userStore *InMemoryUserStore) GetUser(id int64) (*User, error) {
+	userStore.mu.Lock()
+	defer userStore.mu.Unlock()
+
+	for _, user := range userStore.users {
+		if user.ID == id {
+			return user, nil
+		}
+	}
+	return nil, errors.New("user not found")
+}
+
+func (userStore *InMemoryUserStore) GetByEmail(email string) (*User, error) {
 	userStore.mu.Lock()
 	defer userStore.mu.Unlock()
 
@@ -38,7 +52,25 @@ func (userStore *InMemoryUserStore) GetUser(email string) (*User, error) {
 			return user, nil
 		}
 	}
-	return nil, &UserNotFoundError{}
+	return nil, errors.New("user not found")
+}
+
+func (userStore *InMemoryUserStore) GetByToken(scope string, plaintext string) (*User, error) {
+	userStore.mu.Lock()
+	defer userStore.mu.Unlock()
+
+	token, err := userStore.tokenStore.GetToken(scope, plaintext)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range userStore.users {
+		if user.ID == token.UserID {
+			return user, nil
+		}
+	}
+
+	return nil, errors.New("user not found")
 }
 
 func (userStore *InMemoryUserStore) UpdateUser(user *User) error {

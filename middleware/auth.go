@@ -2,74 +2,59 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
+	"github.com/bhivam/saangees-backend/data"
 	"github.com/bhivam/saangees-backend/util"
 )
 
-type AuthKey struct{}
-
 func GetAuthMiddlewareFunc(
-	tokenMaker *util.JWTMaker,
+	userStore data.UserStore,
 	logger *log.Logger,
-	admin bool,
+	isAdmin bool,
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Header.Get("Authorization") == "" {
-				logger.Println("No Authorization header found")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			w.Header().Add("Vary", "Authorization")
+
+			authHeader := r.Header.Get("Authorization")
+
+			if authHeader == "" {
+				ctx := context.WithValue(r.Context(), util.UserContextKey{}, data.AnonymousUser)
+				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}
 
-			token := strings.Split(r.Header.Get("Authorization"), "Bearer ")
-			if len(token) != 2 {
+			tokenParts := strings.Split(r.Header.Get("Authorization"), " ")
+			if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 				logger.Println("Invalid token format")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				http.Error(w, "Bad Auth Header", http.StatusBadRequest)
 				return
 			}
 
-			claims, err := verifyClaimsFromAuthHeader(r, tokenMaker)
+			token := tokenParts[1]
+
+			// TODO validate token
+
+			// verify token
+
+			user, err := userStore.GetByToken(data.ScopeAuthentication, token)
 			if err != nil {
-				logger.Println("Error validating token :: ", err)
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				logger.Println("Error getting user :: ", err)
+				http.Error(w, "Error getting user from token", http.StatusForbidden)
 				return
 			}
 
-			if admin && !claims.IsAdmin {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
+      if isAdmin && !user.IsAdmin {
+        logger.Println("User is not admin")
+        http.Error(w, "User is not admin", http.StatusForbidden)
+        return
+      }
 
-			ctx := context.WithValue(r.Context(), AuthKey{}, claims)
+			ctx := context.WithValue(r.Context(), util.UserContextKey{}, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-
-func verifyClaimsFromAuthHeader(
-	r *http.Request,
-	tokenMaker *util.JWTMaker,
-) (*util.UserClaims, error) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		return nil, fmt.Errorf("no Authorization header found")
-	}
-
-	fields := strings.Fields(authHeader)
-	if len(fields) != 2 || fields[0] != "Bearer" {
-		return nil, fmt.Errorf("invalid authorization header")
-	}
-
-	token := fields[1]
-
-	claims, err := tokenMaker.VerifyToken(token)
-	if err != nil {
-		return nil, fmt.Errorf("error verifying token [%v] :: %w", authHeader, err)
-	}
-
-	return claims, nil
 }

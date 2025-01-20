@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/bhivam/saangees-backend/data"
-	"github.com/bhivam/saangees-backend/middleware"
 	"github.com/bhivam/saangees-backend/util"
 )
 
@@ -40,24 +39,10 @@ func (userHandler *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request
 }
 
 func (userHandler *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	// TODO: Grab emails from claims
-
-	claims := r.Context().Value(middleware.AuthKey{})
-	if claims == nil {
-		http.Error(w, "Error while getting data", http.StatusInternalServerError)
-		return
-	}
-
-	userClaims, ok := claims.(*util.UserClaims)
+	user, ok := r.Context().Value(util.UserContextKey{}).(*data.User)
 	if !ok {
-		http.Error(w, "Error while processing data", http.StatusInternalServerError)
-		return
-	}
-
-	user, err := userHandler.userStore.GetUser(userClaims.Email)
-	if err != nil {
-		userHandler.logger.Println("Error retreiving user :: ", err)
-		http.Error(w, "Error while getting data", http.StatusInternalServerError)
+		userHandler.logger.Println("Error getting user from context")
+		http.Error(w, "Error getting user from context", http.StatusInternalServerError)
 		return
 	}
 
