@@ -1,26 +1,28 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/bhivam/saangees-backend/data"
 )
 
 type UserRequestBody struct {
 	Name     string `json:"name"`
-	Email    string `json:"email"`
+	PhoneNumber    string `json:"phone_number"`
 	Password string `json:"password"`
 	IsAdmin  bool   `json:"is_admin"`
 }
 
 type UserResponseBody struct {
 	Name    string `json:"name"`
-	Email   string `json:"email"`
+	PhoneNumber   string `json:"phone_number"`
 	IsAdmin bool   `json:"is_admin"`
 }
 
 type ListUsersResponseBody []UserResponseBody
 
 type CreateTokenRequestBody struct {
-	Email    string `json:"email"`
+	PhoneNumber    string `json:"phone_number"`
 	Password string `json:"password"`
 }
 
@@ -32,16 +34,44 @@ type CreateTokenResponseBody struct {
 func toDataUser(userRequestBody UserRequestBody) *data.User {
 	return &data.User{
 		Name:    userRequestBody.Name,
-		Email:   userRequestBody.Email,
+		PhoneNumber:   userRequestBody.PhoneNumber,
 		Hash:    userRequestBody.Password, // prehashed
 		IsAdmin: userRequestBody.IsAdmin,
 	}
 }
 
+type CreateItemRequest struct {
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
+}
+
+type UpdateItemRequest struct {
+	ID   int64     `json:"id"`
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
+}
+
+// Response Structs
+type ItemResponse struct {
+	ID   int64     `json:"id"`
+	Name string    `json:"name"`
+	Date time.Time `json:"date"`
+}
+
+type ListItemsResponse []ItemResponse
+
 func toUserRes(user *data.User) *UserResponseBody {
 	return &UserResponseBody{
 		Name:    user.Name,
-		Email:   user.Email,
+		PhoneNumber:   user.PhoneNumber,
 		IsAdmin: user.IsAdmin,
+	}
+}
+
+func toItemResponse(item *data.Item) *ItemResponse {
+	return &ItemResponse{
+		ID:   item.ID,
+		Name: item.Name,
+		Date: item.Date,
 	}
 }

@@ -35,11 +35,11 @@ func (tokenHandler *TokenHandler) CreateToken(
 		tokenHandler.logger.Println("Error decoding request body :: ", err)
 		http.Error(w, "Error decoding request body", http.StatusBadRequest)
 		return
-	}
+  }
 
 	// TODO JSON validation
 
-	user, err := tokenHandler.userStore.GetByEmail(requestBody.Email)
+	user, err := tokenHandler.userStore.GetByPhoneNumber(requestBody.PhoneNumber)
 	if err != nil {
 		// TODO better error handling
 		tokenHandler.logger.Println("Error getting user :: ", err)

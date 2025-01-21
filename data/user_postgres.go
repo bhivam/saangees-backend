@@ -37,9 +37,9 @@ func (store *PostgresUserStore) GetUser(id int64) (*User, error) {
 	return &user, nil
 }
 
-func (store *PostgresUserStore) GetByEmail(email string) (*User, error) {
+func (store *PostgresUserStore) GetByPhoneNumber(phoneNumber string) (*User, error) {
 	var user User
-	if err := store.DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := store.DB.Where("phone_number = ?", phoneNumber).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
 		}

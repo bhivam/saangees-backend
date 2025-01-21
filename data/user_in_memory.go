@@ -43,12 +43,12 @@ func (userStore *InMemoryUserStore) GetUser(id int64) (*User, error) {
 	return nil, errors.New("user not found")
 }
 
-func (userStore *InMemoryUserStore) GetByEmail(email string) (*User, error) {
+func (userStore *InMemoryUserStore) GetByPhoneNumber(phoneNumber string) (*User, error) {
 	userStore.mu.Lock()
 	defer userStore.mu.Unlock()
 
 	for _, user := range userStore.users {
-		if user.Email == email {
+		if user.PhoneNumber == phoneNumber {
 			return user, nil
 		}
 	}

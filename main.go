@@ -21,25 +21,26 @@ import (
 func main() {
 	logger := log.New(os.Stdout, "AUTH API :: ", log.LstdFlags)
 
-  err := godotenv.Load()
-  if err != nil {
-    logger.Println("Did not load .env file :: ", err)
-  }
+	err := godotenv.Load()
+	if err != nil {
+		logger.Println("Did not load .env file :: ", err)
+	}
 
 	db_cnx_string := os.Getenv("DB_CONNECTION_STRING")
-  if db_cnx_string == "" {
-    logger.Println("DB_CONNECTION_STRING is not set")
-    return
-  }
+	if db_cnx_string == "" {
+		logger.Println("DB_CONNECTION_STRING is not set")
+		return
+	}
 
 	db, err := gorm.Open(postgres.Open(db_cnx_string), &gorm.Config{})
 	if err != nil {
 		logger.Println("Error connecting to database :: ", err)
-    return
+		return
 	}
 
 	tokenStore := data.NewPostgresTokenStore(db)
 	userStore := data.NewPostgresUserStore(db)
+	itemStore := data.NewPostgresItemStore(db)
 
 	router := http.NewServeMux()
 
@@ -47,12 +48,18 @@ func main() {
 
 	userHandler := handler.NewUserHandler(logger, userStore)
 	tokenHandler := handler.NewTokenHandler(logger, userStore, tokenStore)
+	itemHandler := handler.NewItemHandler(logger, itemStore)
 
 	router.Handle("POST /token", http.HandlerFunc(tokenHandler.CreateToken))
 
 	router.Handle("POST /user/create", http.HandlerFunc(userHandler.CreateUser))
 	router.Handle("GET /user/list", http.HandlerFunc(userHandler.ListUsers)) // Admin Auth
 	router.Handle("GET /user", http.HandlerFunc(userHandler.GetUser))        // Base Auth
+
+	router.Handle("POST /item/create", http.HandlerFunc(itemHandler.CreateItem))  // Admin Auth
+	router.Handle("PUT /item/update", http.HandlerFunc(itemHandler.UpdateItem))   // Admin Auth
+	router.Handle("GET /item/week", http.HandlerFunc(itemHandler.GetItemsByWeek)) // Base Auth
+	router.Handle("GET /item", http.HandlerFunc(itemHandler.GetItem))             // Base Auth
 
 	CORS := cors.New(cors.Options{
 		AllowedOrigins: []string{
