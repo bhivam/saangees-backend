@@ -50,7 +50,8 @@ func main() {
 	tokenHandler := handler.NewTokenHandler(logger, userStore, tokenStore)
 	itemHandler := handler.NewItemHandler(logger, itemStore)
 
-	router.Handle("POST /token", http.HandlerFunc(tokenHandler.CreateToken))
+	router.Handle("POST /token", http.HandlerFunc(tokenHandler.CreateToken)) // Base Auth (kind of)
+	router.Handle("DELETE /token", http.HandlerFunc(tokenHandler.DeleteToken))
 
 	router.Handle("POST /user/create", http.HandlerFunc(userHandler.CreateUser))
 	router.Handle("GET /user/list", http.HandlerFunc(userHandler.ListUsers)) // Admin Auth
@@ -69,6 +70,7 @@ func main() {
 		},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 	}).Handler
 
 	server := &http.Server{
