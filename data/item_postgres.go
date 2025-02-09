@@ -36,8 +36,10 @@ func (store *PostgresItemStore) GetItem(id int64) (*Item, error) {
 	return &item, nil
 }
 
+// TODO check if this works as expected
+// TODO add everywhere else if it does
 func (store *PostgresItemStore) UpdateItem(item *Item) error {
-	if err := store.DB.Save(item).Error; err != nil {
+	if err := store.DB.Updates(item).Error; err != nil {
 		return err
 	}
 	return nil

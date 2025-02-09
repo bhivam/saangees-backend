@@ -45,7 +45,7 @@ func (tokenHandler *TokenHandler) DeleteToken(
 	if user == data.AnonymousUser {
 		tokenHandler.logger.Println("Error retrieving user from context")
 		http.Error(w, "User not logged in", http.StatusBadRequest)
-    return
+		return
 	}
 
 	err := tokenHandler.sessionStore.DeleteAllForUser(data.ScopeAuthentication, user.ID)
@@ -89,7 +89,7 @@ func (tokenHandler *TokenHandler) CreateToken(
 
 	token, err := tokenHandler.sessionStore.CreateToken(
 		user.ID,
-		24*time.Hour,
+		30*24*time.Hour,
 		data.ScopeAuthentication,
 	)
 	if err != nil {

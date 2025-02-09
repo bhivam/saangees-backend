@@ -40,7 +40,6 @@ type CreateItemRequest struct {
 	Description  string             `json:"description"`
 	BasePrice    float64            `json:"base_price"`
 	Date         time.Time          `json:"date"`
-	SizeOptions  []data.SizeOption  `json:"size_options"`
 	SpiceOptions []data.SpiceOption `json:"spice_options"`
 }
 
@@ -50,9 +49,9 @@ type UpdateItemRequest struct {
 	Description  string             `json:"description"`
 	BasePrice    float64            `json:"base_price"`
 	Date         time.Time          `json:"date"`
-	SizeOptions  []data.SizeOption  `json:"size_options"`
 	SpiceOptions []data.SpiceOption `json:"spice_options"`
-} 
+	Published    bool               `json:"published"`
+}
 
 type ItemResponse struct {
 	ID           int64              `json:"id"`
@@ -60,8 +59,8 @@ type ItemResponse struct {
 	Date         time.Time          `json:"date"`
 	Description  string             `json:"description"`
 	BasePrice    float64            `json:"base_price"`
-	SizeOptions  []data.SizeOption  `json:"size_options"`
 	SpiceOptions []data.SpiceOption `json:"spice_options"`
+	Published    bool               `json:"published"`
 }
 
 type ListItemsResponse []ItemResponse
@@ -75,13 +74,15 @@ func toUserRes(user *data.User) *UserResponseBody {
 }
 
 func toItemResponse(item *data.Item) *ItemResponse {
-	return &ItemResponse{
-		ID:   item.ID,
-		Name: item.Name,
-		Date: item.Date,
-    Description: item.Description,
-    BasePrice: item.BasePrice,
-    SizeOptions: item.SizeOptions,
-    SpiceOptions: item.SpiceOptions,
+	res := &ItemResponse{
+		ID:           item.ID,
+		Name:         item.Name,
+		Date:         item.Date,
+		Description:  item.Description,
+		BasePrice:    item.BasePrice,
+		SpiceOptions: item.SpiceOptions,
+    Published:    item.Published,
 	}
+
+	return res
 }
