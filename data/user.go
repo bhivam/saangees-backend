@@ -8,7 +8,8 @@ var AnonymousUser = &User{}
 
 type User struct {
 	ID          int64     `gorm:"primaryKey"                     json:"id"`
-	Name        string    `gorm:"type:text;not null"             json:"name"`
+	FirstName   string    `gorm:"type:text;not null"             json:"first_name"`
+	LastName    string    `gorm:"type:text;not null"             json:"last_name"`
 	PhoneNumber string    `gorm:"type:text;not null;uniqueIndex" json:"phone_number"`
 	Hash        string    `gorm:"type:text;not null"             json:"hash"`
 	IsAdmin     bool      `gorm:"default:false"                  json:"is_admin"`

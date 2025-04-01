@@ -7,14 +7,15 @@ import (
 )
 
 type UserRequestBody struct {
-	Name        string `json:"name"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
 	PhoneNumber string `json:"phone_number"`
 	Password    string `json:"password"`
-	IsAdmin     bool   `json:"is_admin"`
 }
 
 type UserResponseBody struct {
-	Name        string `json:"name"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
 	PhoneNumber string `json:"phone_number"`
 	IsAdmin     bool   `json:"is_admin"`
 }
@@ -28,10 +29,11 @@ type CreateTokenRequestBody struct {
 
 func toDataUser(userRequestBody UserRequestBody) *data.User {
 	return &data.User{
-		Name:        userRequestBody.Name,
+		FirstName:   userRequestBody.FirstName,
+		LastName:    userRequestBody.LastName,
 		PhoneNumber: userRequestBody.PhoneNumber,
 		Hash:        userRequestBody.Password, // prehashed
-		IsAdmin:     userRequestBody.IsAdmin,
+		IsAdmin:     false,
 	}
 }
 
@@ -67,7 +69,8 @@ type ListItemsResponse []ItemResponse
 
 func toUserRes(user *data.User) *UserResponseBody {
 	return &UserResponseBody{
-		Name:        user.Name,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
 		PhoneNumber: user.PhoneNumber,
 		IsAdmin:     user.IsAdmin,
 	}
@@ -81,7 +84,7 @@ func toItemResponse(item *data.Item) *ItemResponse {
 		Description:  item.Description,
 		BasePrice:    item.BasePrice,
 		SpiceOptions: item.SpiceOptions,
-    Published:    item.Published,
+		Published:    item.Published,
 	}
 
 	return res

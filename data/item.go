@@ -18,7 +18,7 @@ func (o SpiceOptions) Value() (driver.Value, error) {
 	return json.Marshal(o)
 }
 
-func (o *SpiceOptions) Scan(value interface{}) error {
+func (o *SpiceOptions) Scan(value any) error {
 	b, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
