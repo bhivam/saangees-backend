@@ -15,6 +15,12 @@ func NewPostgresItemStore(db *gorm.DB) *PostgresItemStore {
 	if err := db.AutoMigrate(&Item{}); err != nil {
 		panic("failed to migrate item schema: " + err.Error())
 	}
+	if err := db.AutoMigrate(&ModifierCategory{}); err != nil {
+		panic("failed to migrate modifier category schema: " + err.Error())
+	}
+	if err := db.AutoMigrate(&ModifierOption{}); err != nil {
+		panic("failed to migrate modifier option schema: " + err.Error())
+	}
 	return &PostgresItemStore{DB: db}
 }
 
@@ -25,7 +31,7 @@ func (store *PostgresItemStore) CreateItem(item *Item) (*Item, error) {
 	return item, nil
 }
 
-func (store *PostgresItemStore) GetItem(id int64) (*Item, error) {
+func (store *PostgresItemStore) GetItem(id uint) (*Item, error) {
 	var item Item
 	if err := store.DB.First(&item, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -45,7 +51,7 @@ func (store *PostgresItemStore) UpdateItem(item *Item) error {
 	return nil
 }
 
-func (store *PostgresItemStore) DeleteItem(id int64) error {
+func (store *PostgresItemStore) DeleteItem(id uint) error {
 	if err := store.DB.Delete(&Item{}, id).Error; err != nil {
 		return err
 	}

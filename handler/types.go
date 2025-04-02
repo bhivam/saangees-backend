@@ -6,6 +6,8 @@ import (
 	"github.com/bhivam/saangees-backend/data"
 )
 
+// ========== USER ==========
+
 type UserRequestBody struct {
 	FirstName   string `json:"first_name"`
 	LastName    string `json:"last_name"`
@@ -22,11 +24,6 @@ type UserResponseBody struct {
 
 type ListUsersResponseBody []UserResponseBody
 
-type CreateTokenRequestBody struct {
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
-}
-
 func toDataUser(userRequestBody UserRequestBody) *data.User {
 	return &data.User{
 		FirstName:   userRequestBody.FirstName,
@@ -37,36 +34,6 @@ func toDataUser(userRequestBody UserRequestBody) *data.User {
 	}
 }
 
-type CreateItemRequest struct {
-	Name         string             `json:"name"`
-	Description  string             `json:"description"`
-	BasePrice    float64            `json:"base_price"`
-	Date         time.Time          `json:"date"`
-	SpiceOptions []data.SpiceOption `json:"spice_options"`
-}
-
-type UpdateItemRequest struct {
-	ID           int64              `json:"id"`
-	Name         string             `json:"name"`
-	Description  string             `json:"description"`
-	BasePrice    float64            `json:"base_price"`
-	Date         time.Time          `json:"date"`
-	SpiceOptions []data.SpiceOption `json:"spice_options"`
-	Published    bool               `json:"published"`
-}
-
-type ItemResponse struct {
-	ID           int64              `json:"id"`
-	Name         string             `json:"name"`
-	Date         time.Time          `json:"date"`
-	Description  string             `json:"description"`
-	BasePrice    float64            `json:"base_price"`
-	SpiceOptions []data.SpiceOption `json:"spice_options"`
-	Published    bool               `json:"published"`
-}
-
-type ListItemsResponse []ItemResponse
-
 func toUserRes(user *data.User) *UserResponseBody {
 	return &UserResponseBody{
 		FirstName:   user.FirstName,
@@ -76,16 +43,42 @@ func toUserRes(user *data.User) *UserResponseBody {
 	}
 }
 
-func toItemResponse(item *data.Item) *ItemResponse {
-	res := &ItemResponse{
-		ID:           item.ID,
-		Name:         item.Name,
-		Date:         item.Date,
-		Description:  item.Description,
-		BasePrice:    item.BasePrice,
-		SpiceOptions: item.SpiceOptions,
-		Published:    item.Published,
-	}
+// ========== TOKEN ==========
 
-	return res
+type CreateTokenRequestBody struct {
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
+
+// ========== MODIFER ==========
+
+// NOTE: thse exist purely to strip IDs from the db definition--ID unknown in create req
+type ModifierOption struct {
+	Name          string  `json:"name"`
+	PriceModifier float64 `json:"price_modifier"`
+}
+
+type ModifierOptions []ModifierOption
+
+type ModifierCategory struct {
+	Name            string          `json:"name"`
+	Min             int8            `json:"min"`
+	Max             int8            `json:"max"`
+	ModifierOptions ModifierOptions `json:"modifier_options"`
+}
+
+type ModiferCategories []ModifierCategory
+
+// ========== ITEM ==========
+
+type CreateItemRequest struct {
+	Name               string            `json:"name"`
+	Description        string            `json:"description"`
+	BasePrice          float64           `json:"base_price"`
+	Date               time.Time         `json:"date"`
+	Quantity           uint8             `json:"quantity"`
+	Unit               string            `json:"unit"`
+	ModifierCategories ModiferCategories `json:"modifier_categories"`
+}
+
+type ListItemsResponse []data.Item
