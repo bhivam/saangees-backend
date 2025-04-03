@@ -1,7 +1,12 @@
 package data
 
 import (
+	"bytes"
+	"fmt"
+	"strings"
 	"time"
+
+	"github.com/bhivam/saangees-backend/util"
 )
 
 // NOTE - text vs nvarchar
@@ -39,4 +44,39 @@ type ItemStore interface {
 	UpdateItem(item *Item) error
 	DeleteItem(id uint) error
 	ComingWeekItems() ([]*Item, error)
+}
+
+func ValidateModifierCategories(v *util.Validator, mc []ModifierCategory) {
+	// Name            string
+	// Min             int8
+	// Max             int8
+	// ModifierOptions []ModifierOption
+
+	for i, m := range mc {
+		sb := strings.Builder{}
+		sb.WriteString(fmt.Sprintf("modifier_categories[%d].", i))
+
+	}
+}
+
+func ValidateItem(v *util.Validator, item *Item) {
+	// ID                 uint
+	// Name               string
+	// Description        string
+	// BasePrice          float64
+	// Date               time.Time
+	// Quantity           uint8
+	// Unit               string
+	// Published          bool
+	// ModifierCategories []ModifierCategory
+
+	v.Check(util.Nonempty(item.Name), "name", "Must exist")
+	v.Check(util.MaxLen(item.Name, 50), "name", "Maximum length is 50")
+	v.Check(util.Nonempty(item.Description), "description", "Must exist")
+	v.Check(util.MaxLen(item.Description, 300), "description", "Maximum length is 300")
+	v.Check(util.NonNegativeFl(item.BasePrice), "base_price", "Must be nonnegative")
+	v.Check(item.Quantity > 0, "quantity", "Must be greater than 0")
+	v.Check(util.Nonempty(item.Unit), "unit", "Must exist")
+	v.Check(util.MaxLen(item.Unit, 20), "unit", "Maximum length is 50")
+	v.Check()
 }

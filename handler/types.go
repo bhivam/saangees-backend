@@ -82,3 +82,37 @@ type CreateItemRequest struct {
 }
 
 type ListItemsResponse []data.Item
+
+func toDataItem(req CreateItemRequest) data.Item {
+	modifierCategories := []data.ModifierCategory{}
+
+	if len(req.ModifierCategories) > 0 {
+		for _, mc := range req.ModifierCategories {
+			modifierOptions := []data.ModifierOption{}
+
+			for _, mo := range mc.ModifierOptions {
+				modifierOptions = append(modifierOptions, data.ModifierOption{
+					Name:          mo.Name,
+					PriceModifier: mo.PriceModifier,
+				})
+			}
+
+			modifierCategories = append(modifierCategories, data.ModifierCategory{
+				Name:            mc.Name,
+				Min:             mc.Min,
+				Max:             mc.Max,
+				ModifierOptions: modifierOptions,
+			})
+		}
+	}
+
+	return data.Item{
+		Name:               req.Name,
+		Description:        req.Description,
+		BasePrice:          req.BasePrice,
+		Date:               req.Date,
+		Quantity:           req.Quantity,
+		Unit:               req.Unit,
+		ModifierCategories: modifierCategories,
+	}
+}

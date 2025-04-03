@@ -37,14 +37,9 @@ func (itemHandler *ItemHandler) CreateItem(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	item := &data.Item{
-		Name:        req.Name,
-		Description: req.Description,
-		BasePrice:   req.BasePrice,
-		Date:        req.Date,
-	}
+	item := toDataItem(req)
 
-	createdItem, err := itemHandler.itemStore.CreateItem(item)
+	createdItem, err := itemHandler.itemStore.CreateItem(&item)
 	if err != nil {
 		itemHandler.logger.Println("Error creating item:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -130,7 +125,6 @@ func (itemHandler *ItemHandler) GetItem(w http.ResponseWriter, r *http.Request) 
 }
 
 // TODO Sort response by date
-// TODO depending on level of access, return all items or only published items
 func (itemHandler *ItemHandler) GetItemsByWeek(w http.ResponseWriter, r *http.Request) {
 	items, err := itemHandler.itemStore.ComingWeekItems()
 	if err != nil {
