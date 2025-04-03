@@ -2,6 +2,8 @@ package data
 
 import (
 	"time"
+
+	"github.com/bhivam/saangees-backend/util"
 )
 
 var AnonymousUser = &User{}
@@ -29,4 +31,19 @@ type UserStore interface {
 
 func (user *User) IsAnonymous() bool {
 	return user == AnonymousUser
+}
+
+// TODO: do password checks separately upon sign up
+func ValidateUser(v *util.Validator, user *User) {
+	v.Check(util.Nonempty(user.FirstName), "first_name", "Must exist")
+	v.Check(util.MaxLen(user.FirstName, 50), "first_name", "Maximum length is 50")
+	v.Check(util.Nonempty(user.LastName), "last_name", "Must exist")
+	v.Check(util.MaxLen(user.LastName, 50), "last_name", "Maximum length is 50")
+	v.Check(util.Nonempty(user.PhoneNumber), "phone_number", "Must exist")
+
+	v.Check(
+		util.Matches(user.PhoneNumber, util.PhoneRX),
+		"phone_number",
+		"Invalid phone number format",
+	)
 }

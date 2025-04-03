@@ -1,9 +1,7 @@
 package data
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/bhivam/saangees-backend/util"
@@ -46,30 +44,43 @@ type ItemStore interface {
 	ComingWeekItems() ([]*Item, error)
 }
 
+func ValidateModifierOptions(v *util.Validator, mo []ModifierOption, prefix string) {
+
+		for i, option := range mo {
+			optionPrefix := fmt.Sprintf("%smodifier_options[%d].", prefix, i)
+
+			v.Check(util.Nonempty(option.Name), optionPrefix+"name", "Must exist")
+			v.Check(util.MaxLen(option.Name, 50), optionPrefix+"name", "Maximum length is 50")
+      v.Check(util.NonNegativeFl(option.PriceModifier), optionPrefix+"price_modifier", "Must be nonnegative")
+		}
+
+}
+
 func ValidateModifierCategories(v *util.Validator, mc []ModifierCategory) {
-	// Name            string
-	// Min             int8
-	// Max             int8
-	// ModifierOptions []ModifierOption
-
 	for i, m := range mc {
-		sb := strings.Builder{}
-		sb.WriteString(fmt.Sprintf("modifier_categories[%d].", i))
+		prefix := fmt.Sprintf("modifier_categories[%d].", i)
 
+		v.Check(util.Nonempty(m.Name), prefix+"name", "Must exist")
+		v.Check(util.MaxLen(m.Name, 50), prefix+"name", "Maximum length is 50")
+		v.Check(m.Min >= 0, prefix+"min", "Must be non-negative")
+		v.Check(m.Max >= m.Min, prefix+"max", "Must be greater than or equal to min")
+		v.Check(
+			len(m.ModifierOptions) > 0,
+			prefix+"modifier_options",
+			"Must have at least one option",
+		)
+
+
+
+		var optionNames []string
+		for _, option := range m.ModifierOptions {
+			optionNames = append(optionNames, option.Name)
+		}
+		v.Check(util.Unique(optionNames), prefix+"modifier_options", "Option names must be unique")
 	}
 }
 
 func ValidateItem(v *util.Validator, item *Item) {
-	// ID                 uint
-	// Name               string
-	// Description        string
-	// BasePrice          float64
-	// Date               time.Time
-	// Quantity           uint8
-	// Unit               string
-	// Published          bool
-	// ModifierCategories []ModifierCategory
-
 	v.Check(util.Nonempty(item.Name), "name", "Must exist")
 	v.Check(util.MaxLen(item.Name, 50), "name", "Maximum length is 50")
 	v.Check(util.Nonempty(item.Description), "description", "Must exist")
@@ -77,6 +88,15 @@ func ValidateItem(v *util.Validator, item *Item) {
 	v.Check(util.NonNegativeFl(item.BasePrice), "base_price", "Must be nonnegative")
 	v.Check(item.Quantity > 0, "quantity", "Must be greater than 0")
 	v.Check(util.Nonempty(item.Unit), "unit", "Must exist")
-	v.Check(util.MaxLen(item.Unit, 20), "unit", "Maximum length is 50")
-	v.Check()
+	v.Check(util.MaxLen(item.Unit, 20), "unit", "Maximum length is 20")
+
+	if len(item.ModifierCategories) > 0 {
+		ValidateModifierCategories(v, item.ModifierCategories)
+	}
+
+	var categoryNames []string
+	for _, category := range item.ModifierCategories {
+		categoryNames = append(categoryNames, category.Name)
+	}
+	v.Check(util.Unique(categoryNames), "modifier_categories", "Category names must be unique")
 }

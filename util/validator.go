@@ -2,6 +2,12 @@ package util
 
 import "regexp"
 
+// common regexp
+
+var PhoneRX = regexp.MustCompile(`^\d{10}$`)
+
+// validator object code
+
 type Validator struct {
 	Errors map[string]string
 }
